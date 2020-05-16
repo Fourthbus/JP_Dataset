@@ -48,6 +48,7 @@ from functions import *
 road = gpd.read_file("Road/London road link_subtracted_Segment_Map.shp")
 park = gpd.read_file("GIGL/GiGL_OPS_filtered_CopyFeatur.shp")
 
+# take the x and y bounds of the file
 roadsbound = road.geometry.bounds
 parksbound = park.geometry.bounds
 
@@ -61,11 +62,10 @@ parks_ext_rect['geometry'] = parksbound_ext.apply(rectangulator,axis=1)
 # convert rectdata to GeoDataframe
 parks_ext_rect = gpd.GeoDataFrame(parks_ext_rect, geometry='geometry')
 
-
+# in this piece of the code, it run through 
 ind = park.index
-columnname = ['SiteName','Borough','I800','C800','IC800','Count','geometry']
-output = pd.DataFrame(columns=columnname)
-outputgdf = gpd.GeoDataFrame(output, geometry='geometry')
+columnname = ['SiteName','Borough','I800','C800','IC800','Count','Total_L','geometry']
+output = gpd.GeoDataFrame(columns=columnname,geometry='geometry')
 
 for i in (ind):
     nsegment = 0
@@ -91,6 +91,7 @@ for i in (ind):
     ic800 = roads_near_park['I_C_R800'].sum()
     i800  = roads_near_park['T1024_Ch_1'].sum()
     c800  = roads_near_park['T1024_In_1'].sum()
+    road_l= roads_near_park['Segment_Le'].sum()
     
     # parkdat = {'SiteName': park_row['SiteName'],
     #            'Borough' : park_row['Borough'],
@@ -100,10 +101,11 @@ for i in (ind):
     #            'Count'   : nsegment,
     #            'geometry': park_row['geometry']}
     
-    parkdat = [[park_row['SiteName'], park_row['Borough'], i800, c800, ic800, nsegment, park_row['geometry']]]
+    parkdat = [[park_row['SiteName'], park_row['Borough'], i800, c800, ic800, nsegment, road_l, park_row['geometry']]]
     # expdf = pd.DataFrame(parkdat)
     expgdf = gpd.GeoDataFrame(parkdat, columns=columnname, index=[i], geometry='geometry')
     # print(expdf)
     output = output.append(expgdf)
     
+output.to_file("analysis.shp")
     
