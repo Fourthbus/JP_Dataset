@@ -1,0 +1,27 @@
+!table
+!version 300
+!charset WindowsLatin1
+
+Definition Table
+  Type NATIVE Charset "WindowsLatin1"
+  Fields 15
+    Depthmap_Ref Integer Index 1 ;
+    Angular_Connectivity Float ;
+    Axial_Line_Ref Float ;
+    Connectivity Float ;
+    I_C_R400 Float ;
+    I_C_R800 Float ;
+    Segment_Length Float ;
+    T1024_Choice_R400_metric Float ;
+    T1024_Choice_R800_metric Float ;
+    T1024_Integration_R400_metric Float ;
+    T1024_Integration_R800_metric Float ;
+    T1024_Node_Count_R400_metric Float ;
+    T1024_Node_Count_R800_metric Float ;
+    T1024_Total_Depth_R400_metric Float ;
+    T1024_Total_Depth_R800_metric Float ;
+begin_metadata
+"\IsReadOnly" = "FALSE"
+"\MapInfo" = ""
+"\MapInfo\TableID" = "e6da146b-add4-4d58-b080-ff5a7241bff5"
+end_metadata
