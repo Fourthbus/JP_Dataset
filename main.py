@@ -3,11 +3,37 @@ import pandas as pd
 from geopandas.geoseries import *
 from shapely import wkt
 from shapely.geometry import box
+import matplotlib.pyplot as plt
+
+# =============================================================================
+# just for fun stuff pl
+# =============================================================================
+
+
+
+
+
 
 # converting row input of four min/max to rectangle vertices
 def retangulator (ip):
     rect = box(ip[0], ip[1], ip[2], ip[3])
     return rect
+
+# this refines road within the 25m boundary box for futher analysis
+def roadpicker(parkbound_row,roadboundlist,roadlist):
+    boxminx = parkbound_row[0]
+    boxminy = parkbound_row[1]
+    boxmaxx = parkbound_row[2]
+    boxmaxy = parkbound_row[3]
+    # min of road smaller than max of park
+    road_index = roadbound[roadbound['minx']<boxmaxx]
+    road_index = road_index[road_index['miny']<boxmaxy]
+    # max of road larger than min of park
+    road_index = road_index[road_index['maxx']>boxminx]
+    road_index = road_index[road_index['maxy']>boxminy]
+    surrounded_road = roadlist[roadlist.index.isin(road_index.index)]
+    return surrounded_road
+    
 
 # gigl = gpd.read_file("GIGL/GIGL_OPS_filtered.shp")
 road = gpd.read_file("Road/London road link_subtracted_Segment_Map.shp")
@@ -21,15 +47,17 @@ park = gpd.read_file("GIGL/GiGL_OPS_filtered_CopyFeatur.shp")
 roadbound = road.geometry.bounds
 parkbound = park.geometry.bounds
 
-parkbound_judge = parkbound.add(pd.Series([-25,-25,25,25], index=['minx','miny','maxx','maxy']))
+# extended parkbox by 25m
+ext_bound     = 25
+parkbound_ext = parkbound.add(pd.Series([-ext_bound,-ext_bound,ext_bound,ext_bound], index=['minx','miny','maxx','maxy']))
 
 
 
 # initialising rectdata
-rectdata = pd.DataFrame(columns=['geometry'])
-rectdata['geometry'] = parkbound_judge.apply(retangulator,axis=1)
+park_ext_rect = pd.DataFrame(columns=['geometry'])
+park_ext_rect['geometry'] = parkbound_ext.apply(retangulator,axis=1)
 # convert rectdata to GeoDataframe
-rectdata = gpd.GeoDataFrame(rectdata, geometry='geometry')
+park_ext_rect = gpd.GeoDataFrame(rectdata, geometry='geometry')
 
 # def inthebox (roadboundrow,rectrow):
 #     rbminx = roadboundrow[0]
@@ -52,18 +80,12 @@ rectdata = gpd.GeoDataFrame(rectdata, geometry='geometry')
 #         return True
 #     else:
 #         return False
-    
+ 
 
-    
-rbsample.apply(inthebox,axis=1)
+# each row of the park extended boundary array   
+richmond = parkbound_ext.iloc [[1183]].values[0].tolist()
 
-# min of road smaller than max of park
-indexed_rows = roadbound[roadbound['minx']<511974.30319999997]
-indexed_rows = indexed_rows[indexed_rows['miny']<172981.80370000005]
-# max of road larger than min of park
-indexed_rows = indexed_rows[indexed_rows['maxx']>511028.34729999956]
-indexed_rows = indexed_rows[indexed_rows['maxy']>171751.20600000024]
-park_road = road[road.index.isin(indexed_rows.index)]
+rochmondroad = roadpicker(richmond,roadbound,road)
 
-	minx	miny	maxx	maxy
-785	511028.34729999956	171751.20600000024	511974.30319999997	172981.80370000005
+fig, ax = plt.subplots()
+
