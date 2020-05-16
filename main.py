@@ -48,7 +48,10 @@ def inthebox (roadboundrow,rectrow):
         yin = True
     else:
         yin = False
-        
+    if xin and yin:
+        return True
+    else:
+        return False
     
 
     
