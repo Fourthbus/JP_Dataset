@@ -31,28 +31,39 @@ rectdata['geometry'] = parkbound_judge.apply(retangulator,axis=1)
 # convert rectdata to GeoDataframe
 rectdata = gpd.GeoDataFrame(rectdata, geometry='geometry')
 
-def inthebox (roadboundrow,rectrow):
-    rbminx = roadboundrow[0]
-    rbminy = roadboundrow[1]
-    rbmaxx = roadboundrow[2]
-    rbmaxy = roadboundrow[3]
-    reminx = rectrow[0]
-    reminy = rectrow[1]
-    remaxx = rectrow[2]
-    remaxy = rectrow[3]
-    if reminx < rbminx < remaxx or reminx < rbmaxx < remaxx:
-        xin = True
-    else:
-        xin = False
-    if reminy < rbminy < remaxy or reminy < rbmaxy < remaxy:
-        yin = True
-    else:
-        yin = False
-    if xin and yin:
-        return True
-    else:
-        return False
+# def inthebox (roadboundrow,rectrow):
+#     rbminx = roadboundrow[0]
+#     rbminy = roadboundrow[1]
+#     rbmaxx = roadboundrow[2]
+#     rbmaxy = roadboundrow[3]
+#     reminx = rectrow[0]
+#     reminy = rectrow[1]
+#     remaxx = rectrow[2]
+#     remaxy = rectrow[3]
+#     if reminx < rbminx < remaxx or reminx < rbmaxx < remaxx:
+#         xin = True
+#     else:
+#         xin = False
+#     if reminy < rbminy < remaxy or reminy < rbmaxy < remaxy:
+#         yin = True
+#     else:
+#         yin = False
+#     if xin and yin:
+#         return True
+#     else:
+#         return False
     
 
     
 rbsample.apply(inthebox,axis=1)
+
+# min of road smaller than max of park
+indexed_rows = roadbound[roadbound['minx']<511974.30319999997]
+indexed_rows = indexed_rows[indexed_rows['miny']<172981.80370000005]
+# max of road larger than min of park
+indexed_rows = indexed_rows[indexed_rows['maxx']>511028.34729999956]
+indexed_rows = indexed_rows[indexed_rows['maxy']>171751.20600000024]
+park_road = road[road.index.isin(indexed_rows.index)]
+
+	minx	miny	maxx	maxy
+785	511028.34729999956	171751.20600000024	511974.30319999997	172981.80370000005
