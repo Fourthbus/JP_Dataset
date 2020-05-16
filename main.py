@@ -6,12 +6,39 @@ from shapely.geometry import box
 import matplotlib.pyplot as plt
 
 # =============================================================================
-# just for fun stuff pl
+# 
+# just for fun stuff plotting
+# plot = road.plot(column='I_C_R800',capstyle='round')
+# fig = plot.get_figure()
+# fig.savefig('output.svg')
 # =============================================================================
-
-
-
-
+# 
+# fig, ax = plt.subplots()
+# ax.set_aspect('equal')
+# park_ext_rect.geometry.plot(ax=ax, color='grey')
+# park.geometry.plot(ax=ax, color='green')
+# plt.show()
+# fig = ax.get_figure()
+# fig.savefig('parkbox.svg')
+# =============================================================================
+# 
+# fig, ax = plt.subplots()
+# ax.set_aspect('equal')
+# park.iloc[[1183]].geometry.plot(ax=ax, color='w' ,ec='green', lw=0.5)
+# richmondroad.plot(ax=ax,column='I_C_R800',capstyle='round')
+# plt.show()
+# fig = ax.get_figure()
+# fig.savefig('richmondrefine.svg')
+# =============================================================================
+#
+# fig, ax = plt.subplots()
+# ax.set_aspect('equal')
+# park.iloc[[1183]].geometry.plot(ax=ax, color='w' ,ec='green', lw=0.5)
+# alist.plot(ax=ax,column='I_C_R800',capstyle='round')
+# plt.show()
+# fig = ax.get_figure()
+# fig.savefig('richmondrefine_r50.svg')
+# =============================================================================
 
 
 # converting row input of four min/max to rectangle vertices
@@ -26,66 +53,48 @@ def roadpicker(parkbound_row,roadboundlist,roadlist):
     boxmaxx = parkbound_row[2]
     boxmaxy = parkbound_row[3]
     # min of road smaller than max of park
-    road_index = roadbound[roadbound['minx']<boxmaxx]
+    road_index = roadboundlist[roadboundlist['minx']<boxmaxx]
     road_index = road_index[road_index['miny']<boxmaxy]
     # max of road larger than min of park
     road_index = road_index[road_index['maxx']>boxminx]
     road_index = road_index[road_index['maxy']>boxminy]
     surrounded_road = roadlist[roadlist.index.isin(road_index.index)]
     return surrounded_road
-    
 
-# gigl = gpd.read_file("GIGL/GIGL_OPS_filtered.shp")
+# iterates roads within radus boundary of the park
+def isinbound(parkroad_row_geom,park_rowi,width):
+    parkgeom = park_rowi.geometry
+    roadgeom = parkroad_row_geom
+    return parkgeom.distance(roadgeom) <= width
+    
+# load files
 road = gpd.read_file("Road/London road link_subtracted_Segment_Map.shp")
 park = gpd.read_file("GIGL/GiGL_OPS_filtered_CopyFeatur.shp")
-# roadworked = gpd.read_file("Road2/London_Road_subtracted.shp")
 
-# pt = wkt.loads('POINT(520000 172000)')
-# poly = gigl2d[: 1].geometry[0]
-# line = road[: 1].geometry[0]
-
-roadbound = road.geometry.bounds
-parkbound = park.geometry.bounds
+roadsbound = road.geometry.bounds
+parksbound = park.geometry.bounds
 
 # extended parkbox by 25m
-ext_bound     = 25
-parkbound_ext = parkbound.add(pd.Series([-ext_bound,-ext_bound,ext_bound,ext_bound], index=['minx','miny','maxx','maxy']))
+ext_bound     = 50
+parksbound_ext = parksbound.add(pd.Series([-ext_bound,-ext_bound,ext_bound,ext_bound], index=['minx','miny','maxx','maxy']))
 
-
-
-# initialising rectdata
-park_ext_rect = pd.DataFrame(columns=['geometry'])
-park_ext_rect['geometry'] = parkbound_ext.apply(retangulator,axis=1)
+# make the boundary of each park back to a rectangle POLYGON
+parks_ext_rect = pd.DataFrame(columns=['geometry'])
+parks_ext_rect['geometry'] = parksbound_ext.apply(retangulator,axis=1)
 # convert rectdata to GeoDataframe
-park_ext_rect = gpd.GeoDataFrame(rectdata, geometry='geometry')
+parks_ext_rect = gpd.GeoDataFrame(parks_ext_rect, geometry='geometry')
 
-# def inthebox (roadboundrow,rectrow):
-#     rbminx = roadboundrow[0]
-#     rbminy = roadboundrow[1]
-#     rbmaxx = roadboundrow[2]
-#     rbmaxy = roadboundrow[3]
-#     reminx = rectrow[0]
-#     reminy = rectrow[1]
-#     remaxx = rectrow[2]
-#     remaxy = rectrow[3]
-#     if reminx < rbminx < remaxx or reminx < rbmaxx < remaxx:
-#         xin = True
-#     else:
-#         xin = False
-#     if reminy < rbminy < remaxy or reminy < rbmaxy < remaxy:
-#         yin = True
-#     else:
-#         yin = False
-#     if xin and yin:
-#         return True
-#     else:
-#         return False
- 
 
-# each row of the park extended boundary array   
-richmond = parkbound_ext.iloc [[1183]].values[0].tolist()
+# each row of the park extended boundary array
+park_row = park.iloc[1183]
+park_bound = parksbound_ext.iloc[1183].values.tolist()
 
-rochmondroad = roadpicker(richmond,roadbound,road)
+# roads within the box
+parkroad = roadpicker(park_bound,roadsbound,road)
 
-fig, ax = plt.subplots()
+# for each park it will create a
+boundwidth = ext_bound
+
+# roads within the radius
+parkroad_r = parkroad[parkroad.geometry.apply(isinbound, park_row=parkrow, width=boundwidth)]
 
