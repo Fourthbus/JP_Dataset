@@ -107,5 +107,6 @@ for i in (ind):
     # print(expdf)
     output = output.append(expgdf)
     
-output.to_file("analysis.shp")
+# output.to_file("analysis.shp")
     
+ 
